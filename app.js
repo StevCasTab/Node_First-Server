@@ -85,7 +85,21 @@ const server = http.createServer((req, res) => {
 
             // Write the message to a file
             // This creates or overwrites message.txt
-            fs.writeFileSync('message.txt', message);
+            //fs.writeFileSync('message.txt', message);
+
+            // Save the message to a file, then redirect the user back to the home page
+            fs.writeFile('message.txt', message, (err) => {
+                if (err) {
+                    console.error(err);
+                    res.statusCode = 500;
+                    return res.end('Failed to save message');
+                }
+
+                // Redirect the browser to "/"
+                res.statusCode = 302;
+                res.setHeader('Location', '/');
+                res.end();
+            });
         });
 
         // Tell the browser to redirect (HTTP 302)
