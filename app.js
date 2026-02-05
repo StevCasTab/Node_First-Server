@@ -1,83 +1,123 @@
-//import HTTP Library
+// ==============================
+// Import required Node.js modules
+// ==============================
+
+// Import the built-in HTTP module
+// This allows us to create an HTTP server
 const http = require('http');
 
-//import file system library
+// Import the File System module
+// This lets us read from and write to files
 const fs = require('fs');
 
-//Create Server Logic that runs for each request
-const server = http.createServer((req,res) => {
-    //console.log(req.url, req.method, req.headers);
-    
+
+// ==========================================
+// Create the server (runs on every request)
+// ==========================================
+
+// createServer takes a callback function that runs
+// every time a request hits the server
+const server = http.createServer((req, res) => {
+
+    // req = request object (data sent FROM the client)
+    // res = response object (data sent BACK to the client)
+
+    // Get the requested URL (e.g. "/", "/message")
     const url = req.url;
+
+    // Get the HTTP method (GET, POST, etc.)
     const method = req.method;
 
-    if(url === '/')
-    {
-        //Write to Result
+
+    // ==========================
+    // Route: Home page (/)
+    // ==========================
+    if (url === '/') {
+
+        // Write HTML content to the response
         res.write('<html>');
         res.write('<head><title>Enter Message</title></head>');
-        res.write('<body><form action="/message" method="POST"><input type="text" name="message"><button type="submit">Submit</button></body>');
+
+        // Form sends a POST request to /message
+        res.write(
+            '<body>' +
+            '<form action="/message" method="POST">' +
+            '<input type="text" name="message">' +
+            '<button type="submit">Submit</button>' +
+            '</form>' +
+            '</body>'
+        );
+
         res.write('</html>');
     }
-    else if(url === "/message" && method === "POST")
-    {
-        //Create new file
-        fs.writeFileSync('message.txt', 'DUMMY');
 
-        //Pass header 302 (Redirection)
+
+    // ======================================
+    // Route: Handle form submission (/message)
+    // ======================================
+    else if (url === '/message' && method === 'POST') {
+
+        // Create an array to store incoming data chunks
+        const body = [];
+
+        // HTTP request bodies arrive in pieces (streams)
+        // This event fires every time a new chunk arrives
+        req.on('data', (chunk) => {
+
+            // chunk is a Buffer (raw binary data)
+            console.log(chunk);
+
+            // Store each chunk in the array
+            body.push(chunk);
+        });
+
+        // This event fires once ALL data has been received
+        req.on('end', () => {
+
+            // Combine all chunks into one Buffer
+            // Then convert it into a readable string
+            const parsedBody = Buffer.concat(body).toString();
+
+            // Example parsedBody:
+            // "message=HelloWorld"
+            // Split the string to get only the message value
+            const message = parsedBody.split('=')[1];
+
+            // Write the message to a file
+            // This creates or overwrites message.txt
+            fs.writeFileSync('message.txt', message);
+        });
+
+        // Tell the browser to redirect (HTTP 302)
         res.statusCode = 302;
 
-        //Set Header of result to redirect to new URL
+        // Redirect the browser back to the home page
         res.setHeader('Location', '/');
-
     }
-    else{
-        //Write to Result
+
+
+    // ==========================
+    // Default route (fallback)
+    // ==========================
+    else {
+
+        // Send a simple HTML response
         res.write('<html>');
         res.write('<head><title>My First Page</title></head>');
         res.write('<body><h1>Hello from my Node.js Server!</h1></body>');
         res.write('</html>');
     }
-    //Mark end of result
-    res.end();
 
-    //Exit the process
-    //process.exit();
+
+    // End the response
+    // This tells the browser we are done sending data
+    res.end();
 });
 
-//Listen on Port 3000 which is safe for localhost usage
+
+// ==========================================
+// Start listening for requests
+// ==========================================
+
+// Listen on port 3000 (commonly used for local development)
 server.listen(3000);
-
-
-
-
-
-
-// /*function rqListener(req, res)
-// {
-//     console.log(req);
-// }
-
-// http.createServer(rqListener);*/
-
-
-//========================================================
-//OR
-//========================================================
-/*http.createServer(function(req, res) {
-
-});*/
-
-//========================================================
-
-
-
-//========================================================
-//OR
-//========================================================
-
-/*http.createServer((req,res) => {
-    
-});*/
-
-//========================================================
