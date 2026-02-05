@@ -3,10 +3,10 @@ const http = require('http');
 
 //Create Server Logic that runs for each request
 const server = http.createServer((req,res) => {
-    console.log(req);
+    console.log(req.url, req.method, req.headers);
 
     //Exit the process
-    process.exit();
+    //process.exit();
 });
 
 //Listen on Port 3000 which is safe for localhost usage
